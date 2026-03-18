@@ -6,161 +6,188 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>DODGE</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Syne+Mono&display=swap');
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-–bg:       #07080f;
-–ball:     #f0e040;
-–obs:      #ff4d6d;
-–obs2:     #ff8c42;
-–accent:   #4dffd2;
-–dim:      rgba(255,255,255,0.28);
-}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
 width: 100%; height: 100%;
-background: var(–bg);
+background: #07080f;
 display: flex; flex-direction: column;
 align-items: center; justify-content: center;
 overflow: hidden;
-font-family: ‘Syne Mono’, monospace;
+font-family: ‘Courier New’, Courier, monospace;
 color: #fff;
 user-select: none;
-}
-
-/* Noise overlay */
-body::before {
-content: ‘’;
-position: fixed; inset: 0;
-background-image: url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 200 200’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘n’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23n)’ opacity=‘1’/%3E%3C/svg%3E”);
-opacity: 0.035; pointer-events: none; z-index: 50;
+-webkit-user-select: none;
 }
 
 /* Scanlines */
 body::after {
 content: ‘’;
 position: fixed; inset: 0;
-background: repeating-linear-gradient(to bottom,
+background: repeating-linear-gradient(
+to bottom,
 transparent 0px, transparent 2px,
-rgba(0,0,0,0.09) 2px, rgba(0,0,0,0.09) 3px);
-pointer-events: none; z-index: 51;
+rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 3px
+);
+pointer-events: none; z-index: 99;
 }
 
 .shell {
 display: flex; flex-direction: column;
 align-items: center; gap: 10px;
 position: relative; z-index: 1;
+width: 100%;
+max-width: 420px;
+padding: 0 16px;
 }
 
 /* ── Top bar ── */
 .topbar {
 width: 100%;
 display: flex; justify-content: space-between; align-items: flex-end;
-padding: 0 2px;
 }
 
-.score-group { display: flex; flex-direction: column; gap: 1px; }
-.sc-label { font-size: 0.5rem; letter-spacing: 0.2em; color: var(–dim); text-transform: uppercase; }
+.score-group { display: flex; flex-direction: column; gap: 2px; }
+
+.sc-label {
+font-size: 10px; letter-spacing: 3px;
+color: rgba(255,255,255,0.3); text-transform: uppercase;
+}
+
 .sc-val {
-font-family: ‘Syne’, sans-serif; font-weight: 800;
-font-size: 1.9rem; line-height: 1;
-color: var(–ball);
-text-shadow: 0 0 18px rgba(240,224,64,0.45);
+font-size: 32px; font-weight: 900; line-height: 1;
+letter-spacing: 2px;
+color: #f0e040;
+text-shadow: 0 0 20px rgba(240,224,64,0.5);
 }
-.sc-val.right { text-align: right; color: var(–accent); text-shadow: 0 0 14px rgba(77,255,210,0.4); }
+.sc-val.right {
+text-align: right;
+color: #4dffd2;
+text-shadow: 0 0 16px rgba(77,255,210,0.45);
+}
 
-/* ── Canvas ── */
+/* ── Canvas wrapper ── */
 .canvas-shell {
 position: relative;
-border: 1px solid rgba(255,255,255,0.06);
-border-radius: 3px;
+border: 1px solid rgba(255,255,255,0.07);
+border-radius: 4px;
 overflow: hidden;
-box-shadow:
-0 0 0 1px rgba(255,255,255,0.03),
+box-shadow: 0 0 0 1px rgba(255,255,255,0.03),
+0 8px 40px rgba(0,0,0,0.6),
 0 0 60px rgba(240,224,64,0.04);
 }
 
 canvas { display: block; }
 
+/* ── Overlay (HTML layer over canvas) ── */
+.overlay {
+position: absolute; inset: 0;
+display: flex; flex-direction: column;
+align-items: center; justify-content: center;
+gap: 14px;
+text-align: center;
+background: rgba(7,8,15,0.88);
+backdrop-filter: blur(4px);
+-webkit-backdrop-filter: blur(4px);
+transition: opacity 0.3s ease;
+padding: 20px;
+}
+.overlay.off { opacity: 0; pointer-events: none; }
+
+.ov-title {
+font-size: clamp(36px, 10vw, 56px);
+font-weight: 900;
+letter-spacing: 6px;
+line-height: 1;
+text-transform: uppercase;
+}
+.ov-title.yellow {
+color: #f0e040;
+text-shadow: 0 0 30px rgba(240,224,64,0.55), 0 0 60px rgba(240,224,64,0.2);
+}
+.ov-title.red {
+color: #ff4d6d;
+text-shadow: 0 0 30px rgba(255,77,109,0.55), 0 0 60px rgba(255,77,109,0.2);
+}
+
+.ov-sub {
+font-size: 11px; letter-spacing: 2px;
+color: rgba(255,255,255,0.32);
+line-height: 2; text-transform: uppercase;
+}
+
+.ov-stats {
+display: flex; gap: 36px; margin: 4px 0;
+}
+.ov-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.ov-stat-label { font-size: 9px; letter-spacing: 3px; color: rgba(255,255,255,0.3); text-transform: uppercase; }
+.ov-stat-val { font-size: 28px; font-weight: 900; letter-spacing: 2px; }
+.ov-stat-val.y { color: #f0e040; }
+.ov-stat-val.a { color: #4dffd2; }
+
+.btn {
+font-family: ‘Courier New’, Courier, monospace;
+font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+padding: 12px 38px;
+border: 1px solid #f0e040;
+background: transparent; color: #f0e040;
+cursor: pointer; border-radius: 2px;
+box-shadow: 0 0 16px rgba(240,224,64,0.2);
+transition: background 0.15s, box-shadow 0.15s, color 0.15s;
+-webkit-tap-highlight-color: transparent;
+}
+.btn:hover, .btn:active {
+background: #f0e040; color: #07080f;
+box-shadow: 0 0 30px rgba(240,224,64,0.45);
+}
+
 /* ── Velocity bar ── */
 .vel-row {
-width: 100%;
-display: flex; align-items: center; gap: 8px;
+width: 100%; display: flex; align-items: center; gap: 10px;
 }
-.vel-label { font-size: 0.48rem; letter-spacing: 0.18em; color: var(–dim); white-space: nowrap; text-transform: uppercase; }
+.vel-label {
+font-size: 9px; letter-spacing: 3px;
+color: rgba(255,255,255,0.25); text-transform: uppercase; white-space: nowrap;
+}
 .vel-track {
 flex: 1; height: 2px;
-background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;
+background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden;
 }
 #velFill {
 height: 100%;
-background: linear-gradient(to right, var(–accent), var(–obs));
+background: linear-gradient(to right, #4dffd2, #ff4d6d);
 width: 4%; border-radius: 2px;
 transition: width 0.5s ease;
 }
 
 /* ── Controls hint ── */
-.hint { font-size: 0.5rem; color: var(–dim); letter-spacing: 0.14em; display: flex; gap: 16px; }
+.hint {
+font-size: 10px; color: rgba(255,255,255,0.22);
+letter-spacing: 2px; display: flex; gap: 18px; flex-wrap: wrap; justify-content: center;
+}
 .hint kbd {
 display: inline-flex; align-items: center; justify-content: center;
-border: 1px solid rgba(255,255,255,0.12); border-radius: 3px;
-padding: 1px 6px; font-family: inherit; font-size: 0.5rem;
-background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.45);
+border: 1px solid rgba(255,255,255,0.14); border-radius: 3px;
+padding: 1px 6px; font-family: inherit; font-size: 10px;
+background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.4);
 }
 
-/* ── Overlay ── */
-.overlay {
-position: absolute; inset: 0;
-display: flex; flex-direction: column;
-align-items: center; justify-content: center; gap: 16px;
-text-align: center;
-background: rgba(7,8,15,0.86);
-backdrop-filter: blur(3px);
-transition: opacity 0.35s;
-}
-.overlay.off { opacity: 0; pointer-events: none; }
-
-.ov-title {
-font-family: ‘Syne’, sans-serif; font-weight: 800;
-font-size: clamp(2.4rem, 9vw, 3.6rem);
-letter-spacing: 0.12em; line-height: 1;
-}
-.ov-title.yellow { color: var(–ball); text-shadow: 0 0 32px rgba(240,224,64,0.5); }
-.ov-title.red    { color: var(–obs);  text-shadow: 0 0 32px rgba(255,77,109,0.5); }
-
-.ov-sub { font-size: 0.58rem; color: var(–dim); letter-spacing: 0.18em; text-align: center; line-height: 2.1; text-transform: uppercase; width: 100%; }
-
-.ov-stats { display: flex; gap: 32px; }
-.ov-stat  { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.ov-stat-label { font-size: 0.48rem; color: var(–dim); letter-spacing: 0.18em; }
-.ov-stat-val { font-family: ‘Syne’, sans-serif; font-weight: 700; font-size: 1.5rem; }
-.ov-stat-val.y { color: var(–ball); } .ov-stat-val.a { color: var(–accent); }
-
-.btn {
-font-family: ‘Syne Mono’, monospace; font-size: 0.65rem;
-letter-spacing: 0.22em; text-transform: uppercase;
-padding: 11px 36px; border: 1px solid var(–ball);
-background: transparent; color: var(–ball); cursor: pointer;
-border-radius: 2px; box-shadow: 0 0 14px rgba(240,224,64,0.2);
-transition: all 0.18s;
-}
-.btn:hover { background: var(–ball); color: #07080f; box-shadow: 0 0 28px rgba(240,224,64,0.4); }
-
-/* Mobile */
-.mobile-row { display: none; gap: 14px; width: 100%; justify-content: center; }
+/* ── Mobile buttons ── */
+.mobile-row { display: none; gap: 12px; width: 100%; justify-content: center; }
 .mbtn {
-flex: 1; max-width: 130px; height: 52px;
-border: 1px solid rgba(255,255,255,0.09);
-background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.35);
-font-family: ‘Syne’, sans-serif; font-size: 1.5rem;
-cursor: pointer; border-radius: 4px; transition: all 0.1s;
+flex: 1; max-width: 140px; height: 56px;
+border: 1px solid rgba(255,255,255,0.1);
+background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.4);
+font-size: 22px; cursor: pointer; border-radius: 4px;
+transition: background 0.1s, border-color 0.1s, color 0.1s;
 -webkit-tap-highlight-color: transparent;
 }
-.mbtn:active { background: rgba(240,224,64,0.1); border-color: var(–ball); color: var(–ball); }
+.mbtn:active {
+background: rgba(240,224,64,0.12);
+border-color: #f0e040; color: #f0e040;
+}
 
-@media (max-width: 480px) {
+@media (max-width: 500px) {
 .mobile-row { display: flex; }
 .hint { display: none; }
 }
@@ -181,16 +208,22 @@ cursor: pointer; border-radius: 4px; transition: all 0.1s;
     </div>
   </div>
 
-  <div class="canvas-shell">
+  <div class="canvas-shell" id="canvasShell">
     <canvas id="c"></canvas>
 
 ```
 <div class="overlay" id="ov">
   <div class="ov-title yellow" id="ovTitle">DODGE</div>
-  <div class="ov-sub" id="ovSub">Obstacles fall and drift — move left &amp; right<br>to stay alive as long as you can</div>
+  <div class="ov-sub" id="ovSub">Obstacles fall and drift<br>Move left &amp; right to survive</div>
   <div class="ov-stats" id="ovStats" style="display:none">
-    <div class="ov-stat"><div class="ov-stat-label">Score</div><div class="ov-stat-val y" id="ovScore">0</div></div>
-    <div class="ov-stat"><div class="ov-stat-label">Best</div><div class="ov-stat-val a" id="ovBest">0</div></div>
+    <div class="ov-stat">
+      <div class="ov-stat-label">Score</div>
+      <div class="ov-stat-val y" id="ovScore">0</div>
+    </div>
+    <div class="ov-stat">
+      <div class="ov-stat-label">Best</div>
+      <div class="ov-stat-val a" id="ovBest">0</div>
+    </div>
   </div>
   <button class="btn" id="startBtn">START</button>
 </div>
@@ -204,8 +237,8 @@ cursor: pointer; border-radius: 4px; transition: all 0.1s;
   </div>
 
   <div class="hint">
-    <span><kbd>←</kbd><kbd>→</kbd> Arrow keys</span>
-    <span><kbd>A</kbd><kbd>D</kbd> also work</span>
+    <span><kbd>←</kbd> <kbd>→</kbd> Arrow keys</span>
+    <span><kbd>A</kbd> <kbd>D</kbd> also work</span>
     <span><kbd>Space</kbd> to start</span>
   </div>
 
@@ -216,196 +249,139 @@ cursor: pointer; border-radius: 4px; transition: all 0.1s;
 </div>
 
 <script>
-// ─── Canvas sizing ────────────────────────────────────────────────────────────
+// ─── HiDPI canvas setup ───────────────────────────────────────────────────────
 const canvas = document.getElementById('c');
 const ctx    = canvas.getContext('2d');
+let DPR      = window.devicePixelRatio || 1;
+
+// Logical (CSS) dimensions
+let CW, CH;
 
 function resize() {
-  const maxW = Math.min(window.innerWidth  - 32, 380);
-  const maxH = Math.min(window.innerHeight - 220, 580);
-  canvas.width  = maxW;
-  canvas.height = maxH;
+  DPR = window.devicePixelRatio || 1;
+  const shell = document.querySelector('.shell');
+  const shellW = Math.min(window.innerWidth - 32, 388);
+  CW = shellW;
+  CH = Math.min(window.innerHeight - 210, 580);
+
+  // Physical pixels
+  canvas.width  = Math.round(CW * DPR);
+  canvas.height = Math.round(CH * DPR);
+
+  // CSS size
+  canvas.style.width  = CW + 'px';
+  canvas.style.height = CH + 'px';
+
+  // Scale all drawing by DPR
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 }
 resize();
 window.addEventListener('resize', () => { resize(); if (!running) drawIdle(); });
 
-const W = () => canvas.width;
-const H = () => canvas.height;
-
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Game constants ───────────────────────────────────────────────────────────
 const BALL_R      = 9;
-const BALL_SPD    = 240;   // px/s lateral
-const OBS_H       = 13;
-const FALL_BASE   = 72;    // px/s — slower start
-const DRIFT_AMP   = 38;    // max horizontal drift speed px/s — gentler wiggle
-const WOBBLE_FREQ = 0.9;   // sine frequency for drift — slower oscillation
+const BALL_SPD    = 240;
+const OBS_H       = 14;
+const FALL_BASE   = 72;
+const DRIFT_AMP   = 38;
+const WOBBLE_FREQ = 0.9;
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let running = false, dying = false;
-let score = 0, best = parseInt(localStorage.getItem('d2best')||'0');
-let speedMult = 1, scoreTimer = 0, spawnTimer = 0, spawnInterval = 1700;
+let score = 0;
+let best  = parseInt(localStorage.getItem('dodgeBest') || '0');
+let speedMult = 1, scoreTimer = 0, spawnTimer = 0, spawnInterval = 1800;
 let lastTs = 0;
+let flashAlpha = 0;
+const keys = { l: false, r: false };
+let ball = { x: 0, y: 0 };
+let obs = [];
+let particles = [];
 
 document.getElementById('bestEl').textContent = best;
 
-const keys = { l: false, r: false };
-
-// Ball
-let ball = { x: 0, y: 0 };
-
-// Obstacles array
-let obs = [];
-
-// Death flash
-let flashAlpha = 0;
-
-// Particles
-let particles = [];
-
 // ─── Obstacle factory ─────────────────────────────────────────────────────────
-/*
-  Each obstacle is a bar that comes in from the left or right side, spanning
-  part of the width and leaving a gap. It also drifts horizontally via a
-  sine wave so the gap oscillates — making it unpredictable.
-*/
 function spawnObs() {
-  const side      = Math.random() < 0.5 ? 'left' : 'right';
-  const gapW      = W() * (0.42 + Math.random() * 0.1);  // wider gap
-  const barW      = W() - gapW;
-  // Gap position: random along width
-  const gapX      = Math.random() * (W() - gapW);
-  // The bar occupies either left or right of the gap
-  // We store two rects (one bar might split around the gap)
-  // Simpler: one rect, the gap is a "hole" — encode as gapX, gapW
+  const gapW      = CW * (0.42 + Math.random() * 0.1);
+  const gapX      = Math.random() * (CW - gapW);
   const phase     = Math.random() * Math.PI * 2;
   const driftFreq = WOBBLE_FREQ * (0.7 + Math.random() * 0.7);
   const driftAmp  = DRIFT_AMP   * (0.4 + Math.random() * 0.8) * speedMult;
   const color     = Math.random() < 0.5 ? '#ff4d6d' : '#ff8c42';
-
-  obs.push({
-    y: -OBS_H - 2,
-    gapX, gapW, barW,
-    phase, driftFreq, driftAmp,
-    baseGapX: gapX,   // oscillates around this
-    color,
-    age: 0,
-  });
+  obs.push({ y: -OBS_H - 2, gapX, gapW, phase, driftFreq, driftAmp, baseGapX: gapX, color, age: 0 });
 }
 
 // ─── Collision ────────────────────────────────────────────────────────────────
 function hitTest(o) {
   const bx = ball.x, by = ball.y;
-  const top    = o.y;
-  const bottom = o.y + OBS_H;
-  // Ball circle vs horizontal band
-  if (by + BALL_R < top || by - BALL_R > bottom) return false;
-  // Find the gap extents
-  const gLeft  = o.gapX;
-  const gRight = o.gapX + o.gapW;
-  // Ball is inside gap → safe
-  if (bx + BALL_R > gLeft && bx - BALL_R < gRight) {
-    // Fully inside gap
-    if (bx - BALL_R >= gLeft && bx + BALL_R <= gRight) return false;
-    // Partially in gap — only collide if ball centre is outside gap
-    if (bx < gLeft || bx > gRight) return true;
-    return false;
-  }
-  return true; // ball is in bar zone
+  if (by + BALL_R < o.y || by - BALL_R > o.y + OBS_H) return false;
+  const gL = o.gapX, gR = o.gapX + o.gapW;
+  if (bx - BALL_R >= gL && bx + BALL_R <= gR) return false; // fully in gap
+  if (bx + BALL_R > gL && bx - BALL_R < gR) return false;   // partially in gap — forgive
+  return true;
 }
 
 // ─── Particles ────────────────────────────────────────────────────────────────
 function burst(x, y) {
-  for (let i = 0; i < 28; i++) {
+  for (let i = 0; i < 30; i++) {
     const ang = Math.random() * Math.PI * 2;
-    const spd = 60 + Math.random() * 200;
+    const spd = 60 + Math.random() * 180;
     particles.push({
       x, y,
       vx: Math.cos(ang) * spd,
       vy: Math.sin(ang) * spd,
       life: 1,
-      decay: 0.9 + Math.random() * 0.8,
+      decay: 0.85 + Math.random() * 0.7,
       r: 2 + Math.random() * 4,
       color: Math.random() < 0.5 ? '#ff4d6d' : '#f0e040',
     });
   }
 }
 
-// ─── Drawing helpers ──────────────────────────────────────────────────────────
-function glow(color, blur) { ctx.shadowColor = color; ctx.shadowBlur = blur; }
-function noGlow()           { ctx.shadowBlur = 0; }
+// ─── Drawing ──────────────────────────────────────────────────────────────────
+function glow(color, blur)  { ctx.shadowColor = color; ctx.shadowBlur = blur * DPR; }
+function noGlow()            { ctx.shadowBlur = 0; }
 
 function drawBg() {
   ctx.fillStyle = '#07080f';
-  ctx.fillRect(0, 0, W(), H());
+  ctx.fillRect(0, 0, CW, CH);
 
-  // Subtle dot grid
+  // Dot grid
   ctx.fillStyle = 'rgba(255,255,255,0.022)';
   const step = 22;
-  for (let x = step; x < W(); x += step)
-    for (let y = step; y < H(); y += step) {
-      ctx.beginPath(); ctx.arc(x, y, 0.9, 0, Math.PI*2); ctx.fill();
+  for (let x = step; x < CW; x += step)
+    for (let y = step; y < CH; y += step) {
+      ctx.beginPath(); ctx.arc(x, y, 0.85, 0, Math.PI * 2); ctx.fill();
     }
 
-  // Bottom danger line
-  ctx.strokeStyle = 'rgba(255,77,109,0.12)';
+  // Danger floor line
+  ctx.strokeStyle = 'rgba(255,77,109,0.13)';
   ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(0, H() - 3); ctx.lineTo(W(), H() - 3);
-  ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, CH - 3); ctx.lineTo(CW, CH - 3); ctx.stroke();
 }
 
 function drawBall() {
   const x = ball.x, y = ball.y;
-  // Outer glow ring
-  const gr = ctx.createRadialGradient(x, y, 0, x, y, BALL_R * 3);
-  gr.addColorStop(0, 'rgba(240,224,64,0.18)');
+
+  // Outer halo
+  const gr = ctx.createRadialGradient(x, y, 0, x, y, BALL_R * 3.2);
+  gr.addColorStop(0, 'rgba(240,224,64,0.16)');
   gr.addColorStop(1, 'rgba(240,224,64,0)');
-  ctx.beginPath(); ctx.arc(x, y, BALL_R * 3, 0, Math.PI*2);
+  ctx.beginPath(); ctx.arc(x, y, BALL_R * 3.2, 0, Math.PI * 2);
   ctx.fillStyle = gr; ctx.fill();
 
   // Core
-  glow('#f0e040', 18);
-  ctx.beginPath(); ctx.arc(x, y, BALL_R, 0, Math.PI*2);
+  glow('#f0e040', 14);
+  ctx.beginPath(); ctx.arc(x, y, BALL_R, 0, Math.PI * 2);
   ctx.fillStyle = '#f0e040'; ctx.fill();
   noGlow();
 
-  // Specular
-  ctx.beginPath(); ctx.arc(x - 3, y - 3, 3.5, 0, Math.PI*2);
-  ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fill();
+  // Specular highlight
+  ctx.beginPath(); ctx.arc(x - 2.5, y - 2.5, 3, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fill();
 }
 
-function drawObs(o) {
-  // Draw bar with gap cut out
-  const gL = o.gapX, gR = o.gapX + o.gapW;
-  const top = o.y, ht = OBS_H;
-
-  // Left segment
-  if (gL > 0) drawObsRect(0, top, gL, ht, o.color);
-  // Right segment
-  if (gR < W()) drawObsRect(gR, top, W() - gR, ht, o.color);
-
-  // Gap edge glow lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(gL, top); ctx.lineTo(gL, top + ht); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(gR, top); ctx.lineTo(gR, top + ht); ctx.stroke();
-}
-
-function drawObsRect(x, y, w, h, color) {
-  // Gradient fill
-  const gr = ctx.createLinearGradient(x, y, x, y + h);
-  gr.addColorStop(0, color);
-  gr.addColorStop(1, shadeColor(color, -30));
-  glow(color, 10);
-  ctx.fillStyle = gr;
-  ctx.fillRect(x, y, w, h);
-  // Top bright edge
-  ctx.fillStyle = 'rgba(255,255,255,0.25)';
-  ctx.fillRect(x, y, w, 2);
-  noGlow();
-}
-
-function shadeColor(hex, amt) {
+function shadeHex(hex, amt) {
   const n = parseInt(hex.slice(1), 16);
   const r = Math.max(0, Math.min(255, (n >> 16) + amt));
   const g = Math.max(0, Math.min(255, ((n >> 8) & 0xff) + amt));
@@ -413,11 +389,41 @@ function shadeColor(hex, amt) {
   return `rgb(${r},${g},${b})`;
 }
 
+function drawObsRect(x, y, w, h, color) {
+  if (w <= 0) return;
+  const gr = ctx.createLinearGradient(x, y, x, y + h);
+  gr.addColorStop(0, color);
+  gr.addColorStop(1, shadeHex(color, -35));
+  glow(color, 8);
+  ctx.fillStyle = gr;
+  ctx.fillRect(x, y, w, h);
+  noGlow();
+  // Top bright edge
+  ctx.fillStyle = 'rgba(255,255,255,0.22)';
+  ctx.fillRect(x, y, w, 2);
+}
+
+function drawObs(o) {
+  const gL = o.gapX, gR = o.gapX + o.gapW;
+  drawObsRect(0,  o.y, gL,       OBS_H, o.color);
+  drawObsRect(gR, o.y, CW - gR,  OBS_H, o.color);
+
+  // Gap edge lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  if (gL > 0) {
+    ctx.beginPath(); ctx.moveTo(gL, o.y); ctx.lineTo(gL, o.y + OBS_H); ctx.stroke();
+  }
+  if (gR < CW) {
+    ctx.beginPath(); ctx.moveTo(gR, o.y); ctx.lineTo(gR, o.y + OBS_H); ctx.stroke();
+  }
+}
+
 function drawParticles() {
   for (const p of particles) {
-    ctx.globalAlpha = p.life;
-    glow(p.color, 6);
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI*2);
+    ctx.globalAlpha = Math.max(0, p.life);
+    glow(p.color, 5);
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
     ctx.fillStyle = p.color; ctx.fill();
     noGlow();
   }
@@ -426,23 +432,21 @@ function drawParticles() {
 
 function drawFlash() {
   if (flashAlpha <= 0) return;
-  ctx.fillStyle = `rgba(255,77,109,${flashAlpha})`;
-  ctx.fillRect(0, 0, W(), H());
+  ctx.fillStyle = `rgba(255,77,109,${flashAlpha.toFixed(3)})`;
+  ctx.fillRect(0, 0, CW, CH);
 }
 
 function drawIdle() {
-  drawBg();
-  // Draw static ball at centre bottom
-  ball.x = W() / 2; ball.y = H() - 36;
-  drawBall();
+  ball.x = CW / 2; ball.y = CH - 36;
+  drawBg(); drawBall();
 }
 
 // ─── Game loop ────────────────────────────────────────────────────────────────
 function startGame() {
   obs = []; particles = []; flashAlpha = 0;
-  score = 0; scoreTimer = 0; spawnTimer = 0; spawnInterval = 1700;
+  score = 0; scoreTimer = 0; spawnTimer = 0; spawnInterval = 1800;
   speedMult = 1;
-  ball.x = W() / 2; ball.y = H() - 36;
+  ball.x = CW / 2; ball.y = CH - 36;
   document.getElementById('scoreEl').textContent = '0';
   document.getElementById('velFill').style.width = '4%';
   document.getElementById('ov').classList.add('off');
@@ -459,7 +463,7 @@ function loop(ts) {
   if (running) update(dt);
   else if (dying) {
     updateParticles(dt);
-    flashAlpha = Math.max(0, flashAlpha - dt * 2.5);
+    flashAlpha = Math.max(0, flashAlpha - dt * 2.2);
   }
 
   drawBg();
@@ -472,46 +476,39 @@ function loop(ts) {
 }
 
 function update(dt) {
-  // Score tick
   scoreTimer += dt;
   if (scoreTimer >= 0.055) {
     score++;
     scoreTimer = 0;
     document.getElementById('scoreEl').textContent = score;
   }
-  speedMult = 1 + score * 0.005;  // slower ramp
+
+  speedMult = 1 + score * 0.005;
   document.getElementById('velFill').style.width =
     Math.min(4 + (speedMult - 1) * 130, 100) + '%';
-  spawnInterval = Math.max(900, 1900 - score * 5);  // slower spawn increase
+  spawnInterval = Math.max(900, 1900 - score * 5);
 
-  // Ball movement
+  // Move ball
   if (keys.l) ball.x -= BALL_SPD * dt;
   if (keys.r) ball.x += BALL_SPD * dt;
-  ball.x = Math.max(BALL_R, Math.min(W() - BALL_R, ball.x));
+  ball.x = Math.max(BALL_R, Math.min(CW - BALL_R, ball.x));
 
   // Spawn
   spawnTimer += dt * 1000;
   if (spawnTimer >= spawnInterval) { spawnObs(); spawnTimer = 0; }
 
-  // Update obstacles
   const fall = FALL_BASE * speedMult;
-  const t = performance.now() / 1000;
+  const t    = performance.now() / 1000;
 
   for (let i = obs.length - 1; i >= 0; i--) {
     const o = obs[i];
     o.y   += fall * dt;
     o.age += dt;
 
-    // Drift: oscillate gapX around baseGapX
     const drift = Math.sin(t * o.driftFreq + o.phase) * o.driftAmp * dt;
-    o.gapX += drift;
-    // Clamp so gap stays fully on screen
-    o.gapX = Math.max(0, Math.min(W() - o.gapW, o.gapX));
+    o.gapX = Math.max(0, Math.min(CW - o.gapW, o.gapX + drift));
 
-    // Remove if off screen
-    if (o.y > H() + OBS_H + 4) { obs.splice(i, 1); continue; }
-
-    // Collision
+    if (o.y > CH + OBS_H + 4) { obs.splice(i, 1); continue; }
     if (hitTest(o)) { triggerDeath(); return; }
   }
 
@@ -521,9 +518,9 @@ function update(dt) {
 function updateParticles(dt) {
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
-    p.x += p.vx * dt;
-    p.y += p.vy * dt;
-    p.vy += 220 * dt;
+    p.x   += p.vx * dt;
+    p.y   += p.vy * dt;
+    p.vy  += 220 * dt;
     p.life -= p.decay * dt;
     if (p.life <= 0) particles.splice(i, 1);
   }
@@ -532,55 +529,55 @@ function updateParticles(dt) {
 function triggerDeath() {
   running = false; dying = true;
   burst(ball.x, ball.y);
-  flashAlpha = 0.55;
+  flashAlpha = 0.5;
 
-  if (score > best) { best = score; localStorage.setItem('d2best', best); }
+  if (score > best) { best = score; localStorage.setItem('dodgeBest', best); }
   document.getElementById('bestEl').textContent = best;
 
   setTimeout(() => {
     dying = false;
-    document.getElementById('ovTitle').textContent = 'GAME OVER';
-    document.getElementById('ovTitle').className = 'ov-title red';
-    document.getElementById('ovSub').textContent = '';
-    document.getElementById('ovScore').textContent = score;
-    document.getElementById('ovBest').textContent = best;
+    document.getElementById('ovTitle').textContent  = 'GAME OVER';
+    document.getElementById('ovTitle').className    = 'ov-title red';
+    document.getElementById('ovSub').textContent    = '';
+    document.getElementById('ovScore').textContent  = score;
+    document.getElementById('ovBest').textContent   = best;
     document.getElementById('ovStats').style.display = 'flex';
     document.getElementById('startBtn').textContent = 'PLAY AGAIN';
     document.getElementById('ov').classList.remove('off');
     drawIdle();
-  }, 800);
+  }, 850);
 }
 
 // ─── Input ────────────────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  if (['ArrowLeft','a','A'].includes(e.key))  keys.l = true;
-  if (['ArrowRight','d','D'].includes(e.key)) keys.r = true;
-  if (e.code === 'Space' && !running && !dying) startGame();
+  if (['ArrowLeft',  'a', 'A'].includes(e.key)) keys.l = true;
+  if (['ArrowRight', 'd', 'D'].includes(e.key)) keys.r = true;
+  if (e.code === 'Space' && !running && !dying)  startGame();
 });
 document.addEventListener('keyup', e => {
-  if (['ArrowLeft','a','A'].includes(e.key))  keys.l = false;
-  if (['ArrowRight','d','D'].includes(e.key)) keys.r = false;
+  if (['ArrowLeft',  'a', 'A'].includes(e.key)) keys.l = false;
+  if (['ArrowRight', 'd', 'D'].includes(e.key)) keys.r = false;
 });
 
-const lb = document.getElementById('lBtn'), rb = document.getElementById('rBtn');
-lb.addEventListener('touchstart', e => { e.preventDefault(); keys.l = true;  }, {passive:false});
-lb.addEventListener('touchend',   e => { e.preventDefault(); keys.l = false; }, {passive:false});
-rb.addEventListener('touchstart', e => { e.preventDefault(); keys.r = true;  }, {passive:false});
-rb.addEventListener('touchend',   e => { e.preventDefault(); keys.r = false; }, {passive:false});
+const lb = document.getElementById('lBtn');
+const rb = document.getElementById('rBtn');
+lb.addEventListener('touchstart', e => { e.preventDefault(); keys.l = true;  }, { passive: false });
+lb.addEventListener('touchend',   e => { e.preventDefault(); keys.l = false; }, { passive: false });
+rb.addEventListener('touchstart', e => { e.preventDefault(); keys.r = true;  }, { passive: false });
+rb.addEventListener('touchend',   e => { e.preventDefault(); keys.r = false; }, { passive: false });
 
-// Swipe on canvas
 let swipeX = null;
-canvas.addEventListener('touchstart', e => { swipeX = e.touches[0].clientX; }, {passive:true});
-canvas.addEventListener('touchmove', e => {
+canvas.addEventListener('touchstart', e => { swipeX = e.touches[0].clientX; }, { passive: true });
+canvas.addEventListener('touchmove',  e => {
   if (swipeX === null) return;
   const dx = e.touches[0].clientX - swipeX;
-  keys.l = dx < -8; keys.r = dx > 8;
-}, {passive:true});
-canvas.addEventListener('touchend', () => { keys.l = keys.r = false; swipeX = null; }, {passive:true});
+  keys.l = dx < -10; keys.r = dx > 10;
+}, { passive: true });
+canvas.addEventListener('touchend', () => { keys.l = keys.r = false; swipeX = null; }, { passive: true });
 
 document.getElementById('startBtn').addEventListener('click', startGame);
 
-// ─── Initial idle render ──────────────────────────────────────────────────────
+// ─── Boot ─────────────────────────────────────────────────────────────────────
 drawIdle();
 </script>
 
