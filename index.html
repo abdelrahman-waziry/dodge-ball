@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>DODGE</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Syne+Mono&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+–bg:       #07080f;
+–ball:     #f0e040;
+–obs:      #ff4d6d;
+–obs2:     #ff8c42;
+–accent:   #4dffd2;
+–dim:      rgba(255,255,255,0.28);
+}
+
+html, body {
+width: 100%; height: 100%;
+background: var(–bg);
+display: flex; flex-direction: column;
+align-items: center; justify-content: center;
+overflow: hidden;
+font-family: ‘Syne Mono’, monospace;
+color: #fff;
+user-select: none;
+}
+
+/* Noise overlay */
+body::before {
+content: ‘’;
+position: fixed; inset: 0;
+background-image: url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 200 200’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘n’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23n)’ opacity=‘1’/%3E%3C/svg%3E”);
+opacity: 0.035; pointer-events: none; z-index: 50;
+}
+
+/* Scanlines */
+body::after {
+content: ‘’;
+position: fixed; inset: 0;
+background: repeating-linear-gradient(to bottom,
+transparent 0px, transparent 2px,
+rgba(0,0,0,0.09) 2px, rgba(0,0,0,0.09) 3px);
+pointer-events: none; z-index: 51;
+}
+
+.shell {
+display: flex; flex-direction: column;
+align-items: center; gap: 10px;
+position: relative; z-index: 1;
+}
+
+/* ── Top bar ── */
+.topbar {
+width: 100%;
+display: flex; justify-content: space-between; align-items: flex-end;
+padding: 0 2px;
+}
+
+.score-group { display: flex; flex-direction: column; gap: 1px; }
+.sc-label { font-size: 0.5rem; letter-spacing: 0.2em; color: var(–dim); text-transform: uppercase; }
+.sc-val {
+font-family: ‘Syne’, sans-serif; font-weight: 800;
+font-size: 1.9rem; line-height: 1;
+color: var(–ball);
+text-shadow: 0 0 18px rgba(240,224,64,0.45);
+}
+.sc-val.right { text-align: right; color: var(–accent); text-shadow: 0 0 14px rgba(77,255,210,0.4); }
+
+/* ── Canvas ── */
+.canvas-shell {
+position: relative;
+border: 1px solid rgba(255,255,255,0.06);
+border-radius: 3px;
+overflow: hidden;
+box-shadow:
+0 0 0 1px rgba(255,255,255,0.03),
+0 0 60px rgba(240,224,64,0.04);
+}
+
+canvas { display: block; }
+
+/* ── Velocity bar ── */
+.vel-row {
+width: 100%;
+display: flex; align-items: center; gap: 8px;
+}
+.vel-label { font-size: 0.48rem; letter-spacing: 0.18em; color: var(–dim); white-space: nowrap; text-transform: uppercase; }
+.vel-track {
+flex: 1; height: 2px;
+background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;
+}
+#velFill {
+height: 100%;
+background: linear-gradient(to right, var(–accent), var(–obs));
+width: 4%; border-radius: 2px;
+transition: width 0.5s ease;
+}
+
+/* ── Controls hint ── */
+.hint { font-size: 0.5rem; color: var(–dim); letter-spacing: 0.14em; display: flex; gap: 16px; }
+.hint kbd {
+display: inline-flex; align-items: center; justify-content: center;
+border: 1px solid rgba(255,255,255,0.12); border-radius: 3px;
+padding: 1px 6px; font-family: inherit; font-size: 0.5rem;
+background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.45);
+}
+
+/* ── Overlay ── */
+.overlay {
+position: absolute; inset: 0;
+display: flex; flex-direction: column;
+align-items: center; justify-content: center; gap: 16px;
+text-align: center;
+background: rgba(7,8,15,0.86);
+backdrop-filter: blur(3px);
+transition: opacity 0.35s;
+}
+.overlay.off { opacity: 0; pointer-events: none; }
+
+.ov-title {
+font-family: ‘Syne’, sans-serif; font-weight: 800;
+font-size: clamp(2.4rem, 9vw, 3.6rem);
+letter-spacing: 0.12em; line-height: 1;
+}
+.ov-title.yellow { color: var(–ball); text-shadow: 0 0 32px rgba(240,224,64,0.5); }
+.ov-title.red    { color: var(–obs);  text-shadow: 0 0 32px rgba(255,77,109,0.5); }
+
+.ov-sub { font-size: 0.58rem; color: var(–dim); letter-spacing: 0.18em; text-align: center; line-height: 2.1; text-transform: uppercase; width: 100%; }
+
+.ov-stats { display: flex; gap: 32px; }
+.ov-stat  { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.ov-stat-label { font-size: 0.48rem; color: var(–dim); letter-spacing: 0.18em; }
+.ov-stat-val { font-family: ‘Syne’, sans-serif; font-weight: 700; font-size: 1.5rem; }
+.ov-stat-val.y { color: var(–ball); } .ov-stat-val.a { color: var(–accent); }
+
+.btn {
+font-family: ‘Syne Mono’, monospace; font-size: 0.65rem;
+letter-spacing: 0.22em; text-transform: uppercase;
+padding: 11px 36px; border: 1px solid var(–ball);
+background: transparent; color: var(–ball); cursor: pointer;
+border-radius: 2px; box-shadow: 0 0 14px rgba(240,224,64,0.2);
+transition: all 0.18s;
+}
+.btn:hover { background: var(–ball); color: #07080f; box-shadow: 0 0 28px rgba(240,224,64,0.4); }
+
+/* Mobile */
+.mobile-row { display: none; gap: 14px; width: 100%; justify-content: center; }
+.mbtn {
+flex: 1; max-width: 130px; height: 52px;
+border: 1px solid rgba(255,255,255,0.09);
+background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.35);
+font-family: ‘Syne’, sans-serif; font-size: 1.5rem;
+cursor: pointer; border-radius: 4px; transition: all 0.1s;
+-webkit-tap-highlight-color: transparent;
+}
+.mbtn:active { background: rgba(240,224,64,0.1); border-color: var(–ball); color: var(–ball); }
+
+@media (max-width: 480px) {
+.mobile-row { display: flex; }
+.hint { display: none; }
+}
+</style>
+
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar">
+    <div class="score-group">
+      <div class="sc-label">Score</div>
+      <div class="sc-val" id="scoreEl">0</div>
+    </div>
+    <div class="score-group">
+      <div class="sc-label" style="text-align:right">Best</div>
+      <div class="sc-val right" id="bestEl">0</div>
+    </div>
+  </div>
+
+  <div class="canvas-shell">
+    <canvas id="c"></canvas>
+
+```
+<div class="overlay" id="ov">
+  <div class="ov-title yellow" id="ovTitle">DODGE</div>
+  <div class="ov-sub" id="ovSub">Obstacles fall and drift — move left &amp; right<br>to stay alive as long as you can</div>
+  <div class="ov-stats" id="ovStats" style="display:none">
+    <div class="ov-stat"><div class="ov-stat-label">Score</div><div class="ov-stat-val y" id="ovScore">0</div></div>
+    <div class="ov-stat"><div class="ov-stat-label">Best</div><div class="ov-stat-val a" id="ovBest">0</div></div>
+  </div>
+  <button class="btn" id="startBtn">START</button>
+</div>
+```
+
+  </div>
+
+  <div class="vel-row">
+    <div class="vel-label">Velocity</div>
+    <div class="vel-track"><div id="velFill"></div></div>
+  </div>
+
+  <div class="hint">
+    <span><kbd>←</kbd><kbd>→</kbd> Arrow keys</span>
+    <span><kbd>A</kbd><kbd>D</kbd> also work</span>
+    <span><kbd>Space</kbd> to start</span>
+  </div>
+
+  <div class="mobile-row">
+    <button class="mbtn" id="lBtn">◀</button>
+    <button class="mbtn" id="rBtn">▶</button>
+  </div>
+</div>
+
+<script>
+// ─── Canvas sizing ────────────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+
+function resize() {
+  const maxW = Math.min(window.innerWidth  - 32, 380);
+  const maxH = Math.min(window.innerHeight - 220, 580);
+  canvas.width  = maxW;
+  canvas.height = maxH;
+}
+resize();
+window.addEventListener('resize', () => { resize(); if (!running) drawIdle(); });
+
+const W = () => canvas.width;
+const H = () => canvas.height;
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+const BALL_R      = 9;
+const BALL_SPD    = 240;   // px/s lateral
+const OBS_H       = 13;
+const FALL_BASE   = 72;    // px/s — slower start
+const DRIFT_AMP   = 38;    // max horizontal drift speed px/s — gentler wiggle
+const WOBBLE_FREQ = 0.9;   // sine frequency for drift — slower oscillation
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let running = false, dying = false;
+let score = 0, best = parseInt(localStorage.getItem('d2best')||'0');
+let speedMult = 1, scoreTimer = 0, spawnTimer = 0, spawnInterval = 1700;
+let lastTs = 0;
+
+document.getElementById('bestEl').textContent = best;
+
+const keys = { l: false, r: false };
+
+// Ball
+let ball = { x: 0, y: 0 };
+
+// Obstacles array
+let obs = [];
+
+// Death flash
+let flashAlpha = 0;
+
+// Particles
+let particles = [];
+
+// ─── Obstacle factory ─────────────────────────────────────────────────────────
+/*
+  Each obstacle is a bar that comes in from the left or right side, spanning
+  part of the width and leaving a gap. It also drifts horizontally via a
+  sine wave so the gap oscillates — making it unpredictable.
+*/
+function spawnObs() {
+  const side      = Math.random() < 0.5 ? 'left' : 'right';
+  const gapW      = W() * (0.42 + Math.random() * 0.1);  // wider gap
+  const barW      = W() - gapW;
+  // Gap position: random along width
+  const gapX      = Math.random() * (W() - gapW);
+  // The bar occupies either left or right of the gap
+  // We store two rects (one bar might split around the gap)
+  // Simpler: one rect, the gap is a "hole" — encode as gapX, gapW
+  const phase     = Math.random() * Math.PI * 2;
+  const driftFreq = WOBBLE_FREQ * (0.7 + Math.random() * 0.7);
+  const driftAmp  = DRIFT_AMP   * (0.4 + Math.random() * 0.8) * speedMult;
+  const color     = Math.random() < 0.5 ? '#ff4d6d' : '#ff8c42';
+
+  obs.push({
+    y: -OBS_H - 2,
+    gapX, gapW, barW,
+    phase, driftFreq, driftAmp,
+    baseGapX: gapX,   // oscillates around this
+    color,
+    age: 0,
+  });
+}
+
+// ─── Collision ────────────────────────────────────────────────────────────────
+function hitTest(o) {
+  const bx = ball.x, by = ball.y;
+  const top    = o.y;
+  const bottom = o.y + OBS_H;
+  // Ball circle vs horizontal band
+  if (by + BALL_R < top || by - BALL_R > bottom) return false;
+  // Find the gap extents
+  const gLeft  = o.gapX;
+  const gRight = o.gapX + o.gapW;
+  // Ball is inside gap → safe
+  if (bx + BALL_R > gLeft && bx - BALL_R < gRight) {
+    // Fully inside gap
+    if (bx - BALL_R >= gLeft && bx + BALL_R <= gRight) return false;
+    // Partially in gap — only collide if ball centre is outside gap
+    if (bx < gLeft || bx > gRight) return true;
+    return false;
+  }
+  return true; // ball is in bar zone
+}
+
+// ─── Particles ────────────────────────────────────────────────────────────────
+function burst(x, y) {
+  for (let i = 0; i < 28; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const spd = 60 + Math.random() * 200;
+    particles.push({
+      x, y,
+      vx: Math.cos(ang) * spd,
+      vy: Math.sin(ang) * spd,
+      life: 1,
+      decay: 0.9 + Math.random() * 0.8,
+      r: 2 + Math.random() * 4,
+      color: Math.random() < 0.5 ? '#ff4d6d' : '#f0e040',
+    });
+  }
+}
+
+// ─── Drawing helpers ──────────────────────────────────────────────────────────
+function glow(color, blur) { ctx.shadowColor = color; ctx.shadowBlur = blur; }
+function noGlow()           { ctx.shadowBlur = 0; }
+
+function drawBg() {
+  ctx.fillStyle = '#07080f';
+  ctx.fillRect(0, 0, W(), H());
+
+  // Subtle dot grid
+  ctx.fillStyle = 'rgba(255,255,255,0.022)';
+  const step = 22;
+  for (let x = step; x < W(); x += step)
+    for (let y = step; y < H(); y += step) {
+      ctx.beginPath(); ctx.arc(x, y, 0.9, 0, Math.PI*2); ctx.fill();
+    }
+
+  // Bottom danger line
+  ctx.strokeStyle = 'rgba(255,77,109,0.12)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, H() - 3); ctx.lineTo(W(), H() - 3);
+  ctx.stroke();
+}
+
+function drawBall() {
+  const x = ball.x, y = ball.y;
+  // Outer glow ring
+  const gr = ctx.createRadialGradient(x, y, 0, x, y, BALL_R * 3);
+  gr.addColorStop(0, 'rgba(240,224,64,0.18)');
+  gr.addColorStop(1, 'rgba(240,224,64,0)');
+  ctx.beginPath(); ctx.arc(x, y, BALL_R * 3, 0, Math.PI*2);
+  ctx.fillStyle = gr; ctx.fill();
+
+  // Core
+  glow('#f0e040', 18);
+  ctx.beginPath(); ctx.arc(x, y, BALL_R, 0, Math.PI*2);
+  ctx.fillStyle = '#f0e040'; ctx.fill();
+  noGlow();
+
+  // Specular
+  ctx.beginPath(); ctx.arc(x - 3, y - 3, 3.5, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fill();
+}
+
+function drawObs(o) {
+  // Draw bar with gap cut out
+  const gL = o.gapX, gR = o.gapX + o.gapW;
+  const top = o.y, ht = OBS_H;
+
+  // Left segment
+  if (gL > 0) drawObsRect(0, top, gL, ht, o.color);
+  // Right segment
+  if (gR < W()) drawObsRect(gR, top, W() - gR, ht, o.color);
+
+  // Gap edge glow lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(gL, top); ctx.lineTo(gL, top + ht); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(gR, top); ctx.lineTo(gR, top + ht); ctx.stroke();
+}
+
+function drawObsRect(x, y, w, h, color) {
+  // Gradient fill
+  const gr = ctx.createLinearGradient(x, y, x, y + h);
+  gr.addColorStop(0, color);
+  gr.addColorStop(1, shadeColor(color, -30));
+  glow(color, 10);
+  ctx.fillStyle = gr;
+  ctx.fillRect(x, y, w, h);
+  // Top bright edge
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.fillRect(x, y, w, 2);
+  noGlow();
+}
+
+function shadeColor(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, Math.min(255, (n >> 16) + amt));
+  const g = Math.max(0, Math.min(255, ((n >> 8) & 0xff) + amt));
+  const b = Math.max(0, Math.min(255, (n & 0xff) + amt));
+  return `rgb(${r},${g},${b})`;
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    ctx.globalAlpha = p.life;
+    glow(p.color, 6);
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI*2);
+    ctx.fillStyle = p.color; ctx.fill();
+    noGlow();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawFlash() {
+  if (flashAlpha <= 0) return;
+  ctx.fillStyle = `rgba(255,77,109,${flashAlpha})`;
+  ctx.fillRect(0, 0, W(), H());
+}
+
+function drawIdle() {
+  drawBg();
+  // Draw static ball at centre bottom
+  ball.x = W() / 2; ball.y = H() - 36;
+  drawBall();
+}
+
+// ─── Game loop ────────────────────────────────────────────────────────────────
+function startGame() {
+  obs = []; particles = []; flashAlpha = 0;
+  score = 0; scoreTimer = 0; spawnTimer = 0; spawnInterval = 1700;
+  speedMult = 1;
+  ball.x = W() / 2; ball.y = H() - 36;
+  document.getElementById('scoreEl').textContent = '0';
+  document.getElementById('velFill').style.width = '4%';
+  document.getElementById('ov').classList.add('off');
+  document.getElementById('ovStats').style.display = 'none';
+  running = true; dying = false;
+  lastTs = performance.now();
+  requestAnimationFrame(loop);
+}
+
+function loop(ts) {
+  const dt = Math.min((ts - lastTs) / 1000, 0.05);
+  lastTs = ts;
+
+  if (running) update(dt);
+  else if (dying) {
+    updateParticles(dt);
+    flashAlpha = Math.max(0, flashAlpha - dt * 2.5);
+  }
+
+  drawBg();
+  obs.forEach(drawObs);
+  drawParticles();
+  if (!dying) drawBall();
+  drawFlash();
+
+  if (running || dying) requestAnimationFrame(loop);
+}
+
+function update(dt) {
+  // Score tick
+  scoreTimer += dt;
+  if (scoreTimer >= 0.055) {
+    score++;
+    scoreTimer = 0;
+    document.getElementById('scoreEl').textContent = score;
+  }
+  speedMult = 1 + score * 0.005;  // slower ramp
+  document.getElementById('velFill').style.width =
+    Math.min(4 + (speedMult - 1) * 130, 100) + '%';
+  spawnInterval = Math.max(900, 1900 - score * 5);  // slower spawn increase
+
+  // Ball movement
+  if (keys.l) ball.x -= BALL_SPD * dt;
+  if (keys.r) ball.x += BALL_SPD * dt;
+  ball.x = Math.max(BALL_R, Math.min(W() - BALL_R, ball.x));
+
+  // Spawn
+  spawnTimer += dt * 1000;
+  if (spawnTimer >= spawnInterval) { spawnObs(); spawnTimer = 0; }
+
+  // Update obstacles
+  const fall = FALL_BASE * speedMult;
+  const t = performance.now() / 1000;
+
+  for (let i = obs.length - 1; i >= 0; i--) {
+    const o = obs[i];
+    o.y   += fall * dt;
+    o.age += dt;
+
+    // Drift: oscillate gapX around baseGapX
+    const drift = Math.sin(t * o.driftFreq + o.phase) * o.driftAmp * dt;
+    o.gapX += drift;
+    // Clamp so gap stays fully on screen
+    o.gapX = Math.max(0, Math.min(W() - o.gapW, o.gapX));
+
+    // Remove if off screen
+    if (o.y > H() + OBS_H + 4) { obs.splice(i, 1); continue; }
+
+    // Collision
+    if (hitTest(o)) { triggerDeath(); return; }
+  }
+
+  updateParticles(dt);
+}
+
+function updateParticles(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.vy += 220 * dt;
+    p.life -= p.decay * dt;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function triggerDeath() {
+  running = false; dying = true;
+  burst(ball.x, ball.y);
+  flashAlpha = 0.55;
+
+  if (score > best) { best = score; localStorage.setItem('d2best', best); }
+  document.getElementById('bestEl').textContent = best;
+
+  setTimeout(() => {
+    dying = false;
+    document.getElementById('ovTitle').textContent = 'GAME OVER';
+    document.getElementById('ovTitle').className = 'ov-title red';
+    document.getElementById('ovSub').textContent = '';
+    document.getElementById('ovScore').textContent = score;
+    document.getElementById('ovBest').textContent = best;
+    document.getElementById('ovStats').style.display = 'flex';
+    document.getElementById('startBtn').textContent = 'PLAY AGAIN';
+    document.getElementById('ov').classList.remove('off');
+    drawIdle();
+  }, 800);
+}
+
+// ─── Input ────────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (['ArrowLeft','a','A'].includes(e.key))  keys.l = true;
+  if (['ArrowRight','d','D'].includes(e.key)) keys.r = true;
+  if (e.code === 'Space' && !running && !dying) startGame();
+});
+document.addEventListener('keyup', e => {
+  if (['ArrowLeft','a','A'].includes(e.key))  keys.l = false;
+  if (['ArrowRight','d','D'].includes(e.key)) keys.r = false;
+});
+
+const lb = document.getElementById('lBtn'), rb = document.getElementById('rBtn');
+lb.addEventListener('touchstart', e => { e.preventDefault(); keys.l = true;  }, {passive:false});
+lb.addEventListener('touchend',   e => { e.preventDefault(); keys.l = false; }, {passive:false});
+rb.addEventListener('touchstart', e => { e.preventDefault(); keys.r = true;  }, {passive:false});
+rb.addEventListener('touchend',   e => { e.preventDefault(); keys.r = false; }, {passive:false});
+
+// Swipe on canvas
+let swipeX = null;
+canvas.addEventListener('touchstart', e => { swipeX = e.touches[0].clientX; }, {passive:true});
+canvas.addEventListener('touchmove', e => {
+  if (swipeX === null) return;
+  const dx = e.touches[0].clientX - swipeX;
+  keys.l = dx < -8; keys.r = dx > 8;
+}, {passive:true});
+canvas.addEventListener('touchend', () => { keys.l = keys.r = false; swipeX = null; }, {passive:true});
+
+document.getElementById('startBtn').addEventListener('click', startGame);
+
+// ─── Initial idle render ──────────────────────────────────────────────────────
+drawIdle();
+</script>
+
+</body>
+</html>
