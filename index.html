@@ -20,7 +20,6 @@ user-select: none;
 -webkit-user-select: none;
 }
 
-/* Scanlines */
 body::after {
 content: ‘’;
 position: fixed; inset: 0;
@@ -36,56 +35,49 @@ pointer-events: none; z-index: 99;
 display: flex; flex-direction: column;
 align-items: center; gap: 10px;
 position: relative; z-index: 1;
-width: 100%;
-max-width: 420px;
+width: 100%; max-width: 420px;
 padding: 0 16px;
 }
 
-/* ── Top bar ── */
 .topbar {
 width: 100%;
 display: flex; justify-content: space-between; align-items: flex-end;
 }
-
 .score-group { display: flex; flex-direction: column; gap: 2px; }
-
-.sc-label {
-font-size: 10px; letter-spacing: 3px;
-color: rgba(255,255,255,0.3); text-transform: uppercase;
-}
-
+.sc-label { font-size: 10px; letter-spacing: 3px; color: rgba(255,255,255,0.3); text-transform: uppercase; }
 .sc-val {
-font-size: 32px; font-weight: 900; line-height: 1;
-letter-spacing: 2px;
-color: #f0e040;
-text-shadow: 0 0 20px rgba(240,224,64,0.5);
+font-size: 32px; font-weight: 900; line-height: 1; letter-spacing: 2px;
+color: #f0e040; text-shadow: 0 0 20px rgba(240,224,64,0.5);
 }
 .sc-val.right {
-text-align: right;
-color: #4dffd2;
+text-align: right; color: #4dffd2;
 text-shadow: 0 0 16px rgba(77,255,210,0.45);
 }
 
-/* ── Canvas wrapper ── */
+/* Lives */
+#livesRow { width: 100%; display: flex; align-items: center; gap: 8px; }
+.lives-label { font-size: 9px; letter-spacing: 3px; color: rgba(255,255,255,0.25); text-transform: uppercase; }
+.hearts { display: flex; gap: 5px; }
+.heart { width: 14px; height: 14px; transition: transform 0.2s, opacity 0.3s; }
+.heart.lost { opacity: 0.13; transform: scale(0.78); }
+
+/* Canvas */
 .canvas-shell {
 position: relative;
 border: 1px solid rgba(255,255,255,0.07);
-border-radius: 4px;
-overflow: hidden;
+border-radius: 4px; overflow: hidden;
 box-shadow: 0 0 0 1px rgba(255,255,255,0.03),
 0 8px 40px rgba(0,0,0,0.6),
 0 0 60px rgba(240,224,64,0.04);
 }
-
 canvas { display: block; }
 
-/* ── Overlay (HTML layer over canvas) ── */
+/* Overlay */
 .overlay {
 position: absolute; inset: 0;
 display: flex; flex-direction: column;
 align-items: center; justify-content: center;
-gap: 14px;
-text-align: center;
+gap: 14px; text-align: center;
 background: rgba(7,8,15,0.88);
 backdrop-filter: blur(4px);
 -webkit-backdrop-filter: blur(4px);
@@ -96,75 +88,37 @@ padding: 20px;
 
 .ov-title {
 font-size: clamp(36px, 10vw, 56px);
-font-weight: 900;
-letter-spacing: 6px;
-line-height: 1;
-text-transform: uppercase;
+font-weight: 900; letter-spacing: 6px; line-height: 1; text-transform: uppercase;
 }
-.ov-title.yellow {
-color: #f0e040;
-text-shadow: 0 0 30px rgba(240,224,64,0.55), 0 0 60px rgba(240,224,64,0.2);
-}
-.ov-title.red {
-color: #ff4d6d;
-text-shadow: 0 0 30px rgba(255,77,109,0.55), 0 0 60px rgba(255,77,109,0.2);
-}
+.ov-title.yellow { color: #f0e040; text-shadow: 0 0 30px rgba(240,224,64,0.55), 0 0 60px rgba(240,224,64,0.2); }
+.ov-title.red    { color: #ff4d6d; text-shadow: 0 0 30px rgba(255,77,109,0.55), 0 0 60px rgba(255,77,109,0.2); }
 
-.ov-sub {
-font-size: 11px; letter-spacing: 2px;
-color: rgba(255,255,255,0.32);
-line-height: 2; text-transform: uppercase;
-}
+.ov-sub { font-size: 11px; letter-spacing: 2px; color: rgba(255,255,255,0.32); line-height: 2; text-transform: uppercase; }
 
-.ov-stats {
-display: flex; gap: 36px; margin: 4px 0;
-}
-.ov-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.ov-stats { display: flex; gap: 36px; margin: 4px 0; }
+.ov-stat  { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .ov-stat-label { font-size: 9px; letter-spacing: 3px; color: rgba(255,255,255,0.3); text-transform: uppercase; }
-.ov-stat-val { font-size: 28px; font-weight: 900; letter-spacing: 2px; }
+.ov-stat-val   { font-size: 28px; font-weight: 900; letter-spacing: 2px; }
 .ov-stat-val.y { color: #f0e040; }
 .ov-stat-val.a { color: #4dffd2; }
 
 .btn {
 font-family: ‘Courier New’, Courier, monospace;
 font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
-padding: 12px 38px;
-border: 1px solid #f0e040;
-background: transparent; color: #f0e040;
-cursor: pointer; border-radius: 2px;
+padding: 12px 38px; border: 1px solid #f0e040;
+background: transparent; color: #f0e040; cursor: pointer; border-radius: 2px;
 box-shadow: 0 0 16px rgba(240,224,64,0.2);
 transition: background 0.15s, box-shadow 0.15s, color 0.15s;
 -webkit-tap-highlight-color: transparent;
 }
-.btn:hover, .btn:active {
-background: #f0e040; color: #07080f;
-box-shadow: 0 0 30px rgba(240,224,64,0.45);
-}
+.btn:hover, .btn:active { background: #f0e040; color: #07080f; box-shadow: 0 0 30px rgba(240,224,64,0.45); }
 
-/* ── Velocity bar ── */
-.vel-row {
-width: 100%; display: flex; align-items: center; gap: 10px;
-}
-.vel-label {
-font-size: 9px; letter-spacing: 3px;
-color: rgba(255,255,255,0.25); text-transform: uppercase; white-space: nowrap;
-}
-.vel-track {
-flex: 1; height: 2px;
-background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden;
-}
-#velFill {
-height: 100%;
-background: linear-gradient(to right, #4dffd2, #ff4d6d);
-width: 4%; border-radius: 2px;
-transition: width 0.5s ease;
-}
+.vel-row { width: 100%; display: flex; align-items: center; gap: 10px; }
+.vel-label { font-size: 9px; letter-spacing: 3px; color: rgba(255,255,255,0.25); text-transform: uppercase; white-space: nowrap; }
+.vel-track { flex: 1; height: 2px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; }
+#velFill { height: 100%; background: linear-gradient(to right, #4dffd2, #ff4d6d); width: 4%; border-radius: 2px; transition: width 0.5s ease; }
 
-/* ── Controls hint ── */
-.hint {
-font-size: 10px; color: rgba(255,255,255,0.22);
-letter-spacing: 2px; display: flex; gap: 18px; flex-wrap: wrap; justify-content: center;
-}
+.hint { font-size: 10px; color: rgba(255,255,255,0.22); letter-spacing: 2px; display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
 .hint kbd {
 display: inline-flex; align-items: center; justify-content: center;
 border: 1px solid rgba(255,255,255,0.14); border-radius: 3px;
@@ -172,7 +126,6 @@ padding: 1px 6px; font-family: inherit; font-size: 10px;
 background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.4);
 }
 
-/* ── Mobile buttons ── */
 .mobile-row { display: none; gap: 12px; width: 100%; justify-content: center; }
 .mbtn {
 flex: 1; max-width: 140px; height: 56px;
@@ -182,10 +135,7 @@ font-size: 22px; cursor: pointer; border-radius: 4px;
 transition: background 0.1s, border-color 0.1s, color 0.1s;
 -webkit-tap-highlight-color: transparent;
 }
-.mbtn:active {
-background: rgba(240,224,64,0.12);
-border-color: #f0e040; color: #f0e040;
-}
+.mbtn:active { background: rgba(240,224,64,0.12); border-color: #f0e040; color: #f0e040; }
 
 @media (max-width: 500px) {
 .mobile-row { display: flex; }
@@ -208,22 +158,25 @@ border-color: #f0e040; color: #f0e040;
     </div>
   </div>
 
+  <div id="livesRow">
+    <span class="lives-label">Lives</span>
+    <div class="hearts">
+      <svg class="heart" id="h0" viewBox="0 0 24 24" fill="#ff4d6d"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <svg class="heart" id="h1" viewBox="0 0 24 24" fill="#ff4d6d"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <svg class="heart" id="h2" viewBox="0 0 24 24" fill="#ff4d6d"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    </div>
+  </div>
+
   <div class="canvas-shell" id="canvasShell">
     <canvas id="c"></canvas>
 
 ```
 <div class="overlay" id="ov">
   <div class="ov-title yellow" id="ovTitle">DODGE</div>
-  <div class="ov-sub" id="ovSub">Obstacles fall and drift<br>Move left &amp; right to survive</div>
+  <div class="ov-sub" id="ovSub">Obstacles fall and drift<br>Move left &amp; right to survive<br>You have 3 lives</div>
   <div class="ov-stats" id="ovStats" style="display:none">
-    <div class="ov-stat">
-      <div class="ov-stat-label">Score</div>
-      <div class="ov-stat-val y" id="ovScore">0</div>
-    </div>
-    <div class="ov-stat">
-      <div class="ov-stat-label">Best</div>
-      <div class="ov-stat-val a" id="ovBest">0</div>
-    </div>
+    <div class="ov-stat"><div class="ov-stat-label">Score</div><div class="ov-stat-val y" id="ovScore">0</div></div>
+    <div class="ov-stat"><div class="ov-stat-label">Best</div><div class="ov-stat-val a" id="ovBest">0</div></div>
   </div>
   <button class="btn" id="startBtn">START</button>
 </div>
@@ -249,66 +202,93 @@ border-color: #f0e040; color: #f0e040;
 </div>
 
 <script>
-// ─── HiDPI canvas setup ───────────────────────────────────────────────────────
+// ─── HiDPI canvas ─────────────────────────────────────────────────────────────
 const canvas = document.getElementById('c');
 const ctx    = canvas.getContext('2d');
-let DPR      = window.devicePixelRatio || 1;
-
-// Logical (CSS) dimensions
+let DPR = window.devicePixelRatio || 1;
 let CW, CH;
 
 function resize() {
   DPR = window.devicePixelRatio || 1;
-  const shell = document.querySelector('.shell');
-  const shellW = Math.min(window.innerWidth - 32, 388);
-  CW = shellW;
-  CH = Math.min(window.innerHeight - 210, 580);
-
-  // Physical pixels
+  CW  = Math.min(window.innerWidth - 32, 388);
+  CH  = Math.min(window.innerHeight - 240, 560);
   canvas.width  = Math.round(CW * DPR);
   canvas.height = Math.round(CH * DPR);
-
-  // CSS size
   canvas.style.width  = CW + 'px';
   canvas.style.height = CH + 'px';
-
-  // Scale all drawing by DPR
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 }
 resize();
 window.addEventListener('resize', () => { resize(); if (!running) drawIdle(); });
 
-// ─── Game constants ───────────────────────────────────────────────────────────
-const BALL_R      = 9;
-const BALL_SPD    = 240;
-const OBS_H       = 14;
-const FALL_BASE   = 72;
-const DRIFT_AMP   = 38;
-const WOBBLE_FREQ = 0.9;
+// ─── Web Audio (zero external files) ─────────────────────────────────────────
+let audioCtx = null;
+function audio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function tone(freq, type, dur, vol, delay) {
+  try {
+    const ac = audio(), t = ac.currentTime + (delay || 0);
+    const o  = ac.createOscillator();
+    const g  = ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.start(t); o.stop(t + dur);
+  } catch(e) {}
+}
+function sndHit()   { tone(160, 'sawtooth', 0.15, 0.2); }
+function sndDie()   { tone(110, 'sawtooth', 0.3, 0.22); tone(75, 'sawtooth', 0.28, 0.18, 0.13); }
+function sndDodge() { tone(540, 'sine', 0.06, 0.06); }
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+const BALL_R         = 9;
+const BALL_SPD       = 240;
+const OBS_H          = 14;
+const FALL_BASE      = 72;
+const DRIFT_AMP      = 38;
+const WOBBLE_FREQ    = 0.9;
+const MAX_LIVES      = 3;
+const TRAIL_LEN      = 20;
+const INVINCIBLE_DUR = 1.8;
 
 // ─── State ────────────────────────────────────────────────────────────────────
-let running = false, dying = false;
-let score = 0;
-let best  = parseInt(localStorage.getItem('dodgeBest') || '0');
+let running = false, dying = false, paused = false;
+let score = 0, best = parseInt(localStorage.getItem('dodgeBest') || '0');
+let lives = MAX_LIVES, invincibleTimer = 0;
 let speedMult = 1, scoreTimer = 0, spawnTimer = 0, spawnInterval = 1800;
 let lastTs = 0;
-let flashAlpha = 0;
-const keys = { l: false, r: false };
+let flashAlpha = 0, flashColor = '255,77,109';
+let shakeAmt = 0;
 let ball = { x: 0, y: 0 };
-let obs = [];
-let particles = [];
+let trail = [], obs = [], particles = [];
+const keys = { l: false, r: false };
 
 document.getElementById('bestEl').textContent = best;
+renderHearts();
+
+// ─── UI helpers ───────────────────────────────────────────────────────────────
+function renderHearts() {
+  for (let i = 0; i < MAX_LIVES; i++) {
+    const el = document.getElementById('h' + i);
+    if (el) i < lives ? el.classList.remove('lost') : el.classList.add('lost');
+  }
+}
 
 // ─── Obstacle factory ─────────────────────────────────────────────────────────
 function spawnObs() {
-  const gapW      = CW * (0.42 + Math.random() * 0.1);
-  const gapX      = Math.random() * (CW - gapW);
-  const phase     = Math.random() * Math.PI * 2;
-  const driftFreq = WOBBLE_FREQ * (0.7 + Math.random() * 0.7);
-  const driftAmp  = DRIFT_AMP   * (0.4 + Math.random() * 0.8) * speedMult;
-  const color     = Math.random() < 0.5 ? '#ff4d6d' : '#ff8c42';
-  obs.push({ y: -OBS_H - 2, gapX, gapW, phase, driftFreq, driftAmp, baseGapX: gapX, color, age: 0 });
+  const gapW = CW * (0.42 + Math.random() * 0.1);
+  const gapX = Math.random() * (CW - gapW);
+  obs.push({
+    y: -OBS_H - 2, gapX, gapW,
+    phase:     Math.random() * Math.PI * 2,
+    driftFreq: WOBBLE_FREQ * (0.7 + Math.random() * 0.7),
+    driftAmp:  DRIFT_AMP * (0.4 + Math.random() * 0.8) * speedMult,
+    color:     Math.random() < 0.5 ? '#ff4d6d' : '#ff8c42',
+    age: 0, passed: false,
+  });
 }
 
 // ─── Collision ────────────────────────────────────────────────────────────────
@@ -316,67 +296,93 @@ function hitTest(o) {
   const bx = ball.x, by = ball.y;
   if (by + BALL_R < o.y || by - BALL_R > o.y + OBS_H) return false;
   const gL = o.gapX, gR = o.gapX + o.gapW;
-  if (bx - BALL_R >= gL && bx + BALL_R <= gR) return false; // fully in gap
-  if (bx + BALL_R > gL && bx - BALL_R < gR) return false;   // partially in gap — forgive
+  if (bx - BALL_R >= gL && bx + BALL_R <= gR) return false;
+  if (bx + BALL_R > gL  && bx - BALL_R < gR)  return false;
   return true;
 }
 
 // ─── Particles ────────────────────────────────────────────────────────────────
-function burst(x, y) {
-  for (let i = 0; i < 30; i++) {
-    const ang = Math.random() * Math.PI * 2;
-    const spd = 60 + Math.random() * 180;
+function burst(x, y, big) {
+  const n = big ? 40 : 16;
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const s = (big ? 80 : 50) + Math.random() * (big ? 190 : 110);
     particles.push({
       x, y,
-      vx: Math.cos(ang) * spd,
-      vy: Math.sin(ang) * spd,
-      life: 1,
-      decay: 0.85 + Math.random() * 0.7,
-      r: 2 + Math.random() * 4,
+      vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+      life: 1, decay: 0.8 + Math.random() * 0.7,
+      r: (big ? 2.5 : 1.5) + Math.random() * 3.5,
       color: Math.random() < 0.5 ? '#ff4d6d' : '#f0e040',
     });
   }
 }
 
-// ─── Drawing ──────────────────────────────────────────────────────────────────
-function glow(color, blur)  { ctx.shadowColor = color; ctx.shadowBlur = blur * DPR; }
-function noGlow()            { ctx.shadowBlur = 0; }
+// ─── Screen shake ─────────────────────────────────────────────────────────────
+function shake(intensity) { shakeAmt = Math.max(shakeAmt, intensity); }
+
+function applyShake() {
+  const shell = document.getElementById('canvasShell');
+  if (shakeAmt < 0.3) {
+    shakeAmt = 0; shell.style.transform = ''; return;
+  }
+  const dx = (Math.random() - 0.5) * shakeAmt * 2;
+  const dy = (Math.random() - 0.5) * shakeAmt * 2;
+  shell.style.transform = `translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px)`;
+  shakeAmt *= 0.76;
+}
+
+// ─── Draw helpers ─────────────────────────────────────────────────────────────
+function glow(c, b) { ctx.shadowColor = c; ctx.shadowBlur = b * DPR; }
+function noGlow()   { ctx.shadowBlur = 0; }
 
 function drawBg() {
   ctx.fillStyle = '#07080f';
   ctx.fillRect(0, 0, CW, CH);
-
-  // Dot grid
   ctx.fillStyle = 'rgba(255,255,255,0.022)';
-  const step = 22;
-  for (let x = step; x < CW; x += step)
-    for (let y = step; y < CH; y += step) {
+  for (let x = 22; x < CW; x += 22)
+    for (let y = 22; y < CH; y += 22) {
       ctx.beginPath(); ctx.arc(x, y, 0.85, 0, Math.PI * 2); ctx.fill();
     }
-
-  // Danger floor line
   ctx.strokeStyle = 'rgba(255,77,109,0.13)';
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(0, CH - 3); ctx.lineTo(CW, CH - 3); ctx.stroke();
 }
 
-function drawBall() {
-  const x = ball.x, y = ball.y;
+function drawTrail() {
+  for (let i = 0; i < trail.length; i++) {
+    const age   = (i + 1) / trail.length;
+    const alpha = (1 - age) * 0.42;
+    const r     = BALL_R * (1 - age * 0.65);
+    if (alpha < 0.01) continue;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = invincibleTimer > 0 ? '#aaffee' : '#f0e040';
+    ctx.beginPath(); ctx.arc(trail[i].x, trail[i].y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
 
-  // Outer halo
+function drawBall() {
+  // Flicker during invincibility
+  if (invincibleTimer > 0 && Math.sin(invincibleTimer * 30) < 0) return;
+
+  const x = ball.x, y = ball.y;
+  const ballColor = invincibleTimer > 0 ? '#aaffee' : '#f0e040';
+  const glowColor = invincibleTimer > 0 ? '#aaffee' : '#f0e040';
+
+  // Halo
   const gr = ctx.createRadialGradient(x, y, 0, x, y, BALL_R * 3.2);
-  gr.addColorStop(0, 'rgba(240,224,64,0.16)');
-  gr.addColorStop(1, 'rgba(240,224,64,0)');
+  gr.addColorStop(0, invincibleTimer > 0 ? 'rgba(170,255,238,0.16)' : 'rgba(240,224,64,0.16)');
+  gr.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.beginPath(); ctx.arc(x, y, BALL_R * 3.2, 0, Math.PI * 2);
   ctx.fillStyle = gr; ctx.fill();
 
   // Core
-  glow('#f0e040', 14);
+  glow(glowColor, 14);
   ctx.beginPath(); ctx.arc(x, y, BALL_R, 0, Math.PI * 2);
-  ctx.fillStyle = '#f0e040'; ctx.fill();
+  ctx.fillStyle = ballColor; ctx.fill();
   noGlow();
 
-  // Specular highlight
+  // Specular
   ctx.beginPath(); ctx.arc(x - 2.5, y - 2.5, 3, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fill();
 }
@@ -392,31 +398,18 @@ function shadeHex(hex, amt) {
 function drawObsRect(x, y, w, h, color) {
   if (w <= 0) return;
   const gr = ctx.createLinearGradient(x, y, x, y + h);
-  gr.addColorStop(0, color);
-  gr.addColorStop(1, shadeHex(color, -35));
-  glow(color, 8);
-  ctx.fillStyle = gr;
-  ctx.fillRect(x, y, w, h);
-  noGlow();
-  // Top bright edge
-  ctx.fillStyle = 'rgba(255,255,255,0.22)';
-  ctx.fillRect(x, y, w, 2);
+  gr.addColorStop(0, color); gr.addColorStop(1, shadeHex(color, -35));
+  glow(color, 8); ctx.fillStyle = gr; ctx.fillRect(x, y, w, h); noGlow();
+  ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.fillRect(x, y, w, 2);
 }
 
 function drawObs(o) {
   const gL = o.gapX, gR = o.gapX + o.gapW;
-  drawObsRect(0,  o.y, gL,       OBS_H, o.color);
-  drawObsRect(gR, o.y, CW - gR,  OBS_H, o.color);
-
-  // Gap edge lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-  ctx.lineWidth = 1;
-  if (gL > 0) {
-    ctx.beginPath(); ctx.moveTo(gL, o.y); ctx.lineTo(gL, o.y + OBS_H); ctx.stroke();
-  }
-  if (gR < CW) {
-    ctx.beginPath(); ctx.moveTo(gR, o.y); ctx.lineTo(gR, o.y + OBS_H); ctx.stroke();
-  }
+  drawObsRect(0,  o.y, gL,      OBS_H, o.color);
+  drawObsRect(gR, o.y, CW - gR, OBS_H, o.color);
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1;
+  if (gL > 0)  { ctx.beginPath(); ctx.moveTo(gL, o.y); ctx.lineTo(gL, o.y + OBS_H); ctx.stroke(); }
+  if (gR < CW) { ctx.beginPath(); ctx.moveTo(gR, o.y); ctx.lineTo(gR, o.y + OBS_H); ctx.stroke(); }
 }
 
 function drawParticles() {
@@ -424,34 +417,36 @@ function drawParticles() {
     ctx.globalAlpha = Math.max(0, p.life);
     glow(p.color, 5);
     ctx.beginPath(); ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
-    ctx.fillStyle = p.color; ctx.fill();
-    noGlow();
+    ctx.fillStyle = p.color; ctx.fill(); noGlow();
   }
   ctx.globalAlpha = 1;
 }
 
 function drawFlash() {
   if (flashAlpha <= 0) return;
-  ctx.fillStyle = `rgba(255,77,109,${flashAlpha.toFixed(3)})`;
+  ctx.fillStyle = `rgba(${flashColor},${flashAlpha.toFixed(3)})`;
   ctx.fillRect(0, 0, CW, CH);
 }
 
 function drawIdle() {
-  ball.x = CW / 2; ball.y = CH - 36;
+  ball.x = CW / 2; ball.y = CH - 36; trail = [];
   drawBg(); drawBall();
 }
 
 // ─── Game loop ────────────────────────────────────────────────────────────────
 function startGame() {
-  obs = []; particles = []; flashAlpha = 0;
+  obs = []; particles = []; trail = [];
+  flashAlpha = 0; shakeAmt = 0;
   score = 0; scoreTimer = 0; spawnTimer = 0; spawnInterval = 1800;
-  speedMult = 1;
+  speedMult = 1; lives = MAX_LIVES; invincibleTimer = 0;
   ball.x = CW / 2; ball.y = CH - 36;
   document.getElementById('scoreEl').textContent = '0';
   document.getElementById('velFill').style.width = '4%';
   document.getElementById('ov').classList.add('off');
   document.getElementById('ovStats').style.display = 'none';
-  running = true; dying = false;
+  document.getElementById('canvasShell').style.transform = '';
+  renderHearts();
+  running = true; dying = false; paused = false;
   lastTs = performance.now();
   requestAnimationFrame(loop);
 }
@@ -460,38 +455,45 @@ function loop(ts) {
   const dt = Math.min((ts - lastTs) / 1000, 0.05);
   lastTs = ts;
 
-  if (running) update(dt);
+  if (running && !paused) update(dt);
   else if (dying) {
     updateParticles(dt);
-    flashAlpha = Math.max(0, flashAlpha - dt * 2.2);
+    flashAlpha = Math.max(0, flashAlpha - dt * 1.8);
   }
 
   drawBg();
   obs.forEach(drawObs);
+  drawTrail();
   drawParticles();
   if (!dying) drawBall();
   drawFlash();
+  applyShake();
 
   if (running || dying) requestAnimationFrame(loop);
 }
 
 function update(dt) {
+  // Score
   scoreTimer += dt;
   if (scoreTimer >= 0.055) {
-    score++;
-    scoreTimer = 0;
+    score++; scoreTimer = 0;
     document.getElementById('scoreEl').textContent = score;
   }
-
   speedMult = 1 + score * 0.005;
-  document.getElementById('velFill').style.width =
-    Math.min(4 + (speedMult - 1) * 130, 100) + '%';
+  document.getElementById('velFill').style.width = Math.min(4 + (speedMult - 1) * 130, 100) + '%';
   spawnInterval = Math.max(900, 1900 - score * 5);
 
-  // Move ball
+  // Invincibility
+  if (invincibleTimer > 0) invincibleTimer -= dt;
+
+  // Ball
   if (keys.l) ball.x -= BALL_SPD * dt;
   if (keys.r) ball.x += BALL_SPD * dt;
   ball.x = Math.max(BALL_R, Math.min(CW - BALL_R, ball.x));
+
+  // Trail
+  trail.unshift({ x: ball.x, y: ball.y });
+  if (trail.length > TRAIL_LEN) trail.length = TRAIL_LEN;
 
   // Spawn
   spawnTimer += dt * 1000;
@@ -502,51 +504,74 @@ function update(dt) {
 
   for (let i = obs.length - 1; i >= 0; i--) {
     const o = obs[i];
-    o.y   += fall * dt;
-    o.age += dt;
+    o.y += fall * dt; o.age += dt;
+    o.gapX = Math.max(0, Math.min(CW - o.gapW,
+      o.gapX + Math.sin(t * o.driftFreq + o.phase) * o.driftAmp * dt));
 
-    const drift = Math.sin(t * o.driftFreq + o.phase) * o.driftAmp * dt;
-    o.gapX = Math.max(0, Math.min(CW - o.gapW, o.gapX + drift));
+    // Passed cleanly
+    if (!o.passed && o.y > ball.y + BALL_R + OBS_H) {
+      o.passed = true; sndDodge();
+    }
 
     if (o.y > CH + OBS_H + 4) { obs.splice(i, 1); continue; }
-    if (hitTest(o)) { triggerDeath(); return; }
+
+    if (invincibleTimer <= 0 && hitTest(o)) { takeHit(); return; }
   }
 
+  flashAlpha = Math.max(0, flashAlpha - dt * 3.5);
   updateParticles(dt);
+}
+
+function takeHit() {
+  lives--;
+  renderHearts();
+  burst(ball.x, ball.y, false);
+
+  if (lives <= 0) {
+    sndDie(); shake(13);
+    flashAlpha = 0.55; flashColor = '255,77,109';
+    running = false; dying = true;
+    if (score > best) { best = score; localStorage.setItem('dodgeBest', best); }
+    document.getElementById('bestEl').textContent = best;
+    setTimeout(showGameOver, 950);
+  } else {
+    sndHit(); shake(7);
+    flashAlpha = 0.32; flashColor = '255,77,109';
+    invincibleTimer = INVINCIBLE_DUR;
+  }
+}
+
+function showGameOver() {
+  dying = false;
+  document.getElementById('ovTitle').textContent   = 'GAME OVER';
+  document.getElementById('ovTitle').className     = 'ov-title red';
+  document.getElementById('ovSub').textContent     = '';
+  document.getElementById('ovScore').textContent   = score;
+  document.getElementById('ovBest').textContent    = best;
+  document.getElementById('ovStats').style.display = 'flex';
+  document.getElementById('startBtn').textContent  = 'PLAY AGAIN';
+  document.getElementById('ov').classList.remove('off');
+  drawIdle();
 }
 
 function updateParticles(dt) {
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
-    p.x   += p.vx * dt;
-    p.y   += p.vy * dt;
-    p.vy  += 220 * dt;
+    p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 220 * dt;
     p.life -= p.decay * dt;
     if (p.life <= 0) particles.splice(i, 1);
   }
 }
 
-function triggerDeath() {
-  running = false; dying = true;
-  burst(ball.x, ball.y);
-  flashAlpha = 0.5;
-
-  if (score > best) { best = score; localStorage.setItem('dodgeBest', best); }
-  document.getElementById('bestEl').textContent = best;
-
-  setTimeout(() => {
-    dying = false;
-    document.getElementById('ovTitle').textContent  = 'GAME OVER';
-    document.getElementById('ovTitle').className    = 'ov-title red';
-    document.getElementById('ovSub').textContent    = '';
-    document.getElementById('ovScore').textContent  = score;
-    document.getElementById('ovBest').textContent   = best;
-    document.getElementById('ovStats').style.display = 'flex';
-    document.getElementById('startBtn').textContent = 'PLAY AGAIN';
-    document.getElementById('ov').classList.remove('off');
-    drawIdle();
-  }, 850);
-}
+// ─── Pause on tab switch ──────────────────────────────────────────────────────
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    paused = true;
+  } else if (paused) {
+    paused = false;
+    lastTs = performance.now();
+  }
+});
 
 // ─── Input ────────────────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
@@ -559,8 +584,7 @@ document.addEventListener('keyup', e => {
   if (['ArrowRight', 'd', 'D'].includes(e.key)) keys.r = false;
 });
 
-const lb = document.getElementById('lBtn');
-const rb = document.getElementById('rBtn');
+const lb = document.getElementById('lBtn'), rb = document.getElementById('rBtn');
 lb.addEventListener('touchstart', e => { e.preventDefault(); keys.l = true;  }, { passive: false });
 lb.addEventListener('touchend',   e => { e.preventDefault(); keys.l = false; }, { passive: false });
 rb.addEventListener('touchstart', e => { e.preventDefault(); keys.r = true;  }, { passive: false });
